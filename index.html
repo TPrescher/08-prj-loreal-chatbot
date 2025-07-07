@@ -3,64 +3,91 @@
   <head>
     <meta charset="UTF-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-    <title>Chat Assistant</title>
+    <title>Smart Product Advisor</title>
+    <!-- Montserrat font -->
     <link
-      href="https://fonts.googleapis.com/icon?family=Material+Icons"
+      href="https://fonts.googleapis.com/css2?family=Montserrat:wght@400;700&display=swap"
       rel="stylesheet"
     />
-    <link
-      href="https://fonts.googleapis.com/css2?family=Montserrat:wght@300;500;700&display=swap"
-      rel="stylesheet"
-    />
-    <link rel="stylesheet" href="style.css" />
+    <!-- Tailwind CSS CDN with custom config for gold -->
+    <script src="https://cdn.tailwindcss.com"></script>
+    <script>
+      tailwind.config = {
+        theme: {
+          extend: {
+            colors: {
+              gold: "#C9B037",
+              black: "#000",
+              white: "#fff",
+            },
+            fontFamily: {
+              mont: ["Montserrat", "sans-serif"],
+            },
+          },
+        },
+      };
+    </script>
+    <style>
+      body {
+        font-family: "Montserrat", Arial, sans-serif;
+      }
+      .uppercase {
+        text-transform: uppercase;
+      }
+    </style>
   </head>
 
-  <body>
-    <div class="page-wrapper">
-      <!------- Header / Branding ------->
-      <header class="site-header">
-        <img src="img/loreal-logo.png" alt="L'Oréal Logo" class="brand-logo" />
-        <h1 class="site-title">SMART PRODUCT ADVISOR</h1>
+  <body class="bg-white min-h-screen flex items-center justify-center">
+    <div
+      class="w-full max-w-2xl mx-auto bg-white rounded-2xl shadow-xl p-0 sm:p-8 flex flex-col min-h-[80vh]"
+    >
+      <!-- Header -->
+      <header class="text-center mb-6">
+        <img
+          src="img/loreal-logo.png"
+          alt="L'Oréal Logo"
+          class="mx-auto mb-4 max-h-20"
+        />
+        <h1
+          class="uppercase font-mont text-black text-2xl font-bold tracking-widest mb-2"
+        >
+          Smart Product Advisor
+        </h1>
+        <div class="text-gold font-semibold text-base mb-2">by L’Oréal</div>
       </header>
-
-      <!------- Chat Area ------->
-      <main>
-        <section class="chatbox">
-          <div id="chatLog" class="chat-window">
-            <!-- messages will be appended here via JS -->
-          </div>
-          <div class="chat-form">
-            <label for="userInput" class="visually-hidden">Message</label>
-            <input
-              id="userInput"
-              name="userInput"
-              type="text"
-              placeholder="Ask me about products or routines…"
-              autocomplete="off"
-              required
-            />
-            <button type="button" id="sendBtn" onclick="sendMessage()">
-              <span class="material-icons">send</span>
-              <span class="visually-hidden">Send</span>
-            </button>
-          </div>
-        </section>
+      <!-- Chat Area -->
+      <main class="flex-1 flex flex-col">
+        <div
+          id="chatLog"
+          class="flex flex-col gap-4 px-2 py-4 overflow-y-auto flex-1 bg-gray-50 rounded-xl border border-black/10 min-h-[300px] max-h-[420px]"
+        >
+          <!-- Messages rendered by JS -->
+        </div>
+        <div class="flex items-center gap-3 mt-4">
+          <input
+            id="userInput"
+            name="userInput"
+            type="text"
+            placeholder="Ask me about products or routines…"
+            autocomplete="off"
+            required
+            class="flex-1 px-4 py-3 rounded-lg border border-gold focus:outline-none focus:ring-2 focus:ring-gold font-mont text-base"
+          />
+          <button
+            type="button"
+            id="sendBtn"
+            onclick="sendMessage()"
+            class="bg-black text-white rounded-lg px-6 py-3 font-mont font-semibold uppercase transition hover:bg-gold hover:text-black"
+          >
+            Send
+          </button>
+        </div>
       </main>
-
-      <!------- Footer Links ------->
-      <footer class="site-footer">
-        <p>&copy; 2025 Company Name. All rights reserved.</p>
-        <nav>
-          <!-- These URLs are placeholders -->
-          <a href="#">Privacy Policy</a>
-          <a href="#">Terms of Use</a>
-          <a href="#">Contact</a>
-        </nav>
+      <!-- Footer -->
+      <footer class="text-center text-gray-500 text-xs mt-8">
+        <p>&copy; 2025 L'Oréal. All rights reserved.</p>
       </footer>
     </div>
-
-    <!-- secrets.js can be removed when using Cloudflare Workers for API requests -->
-    <script src="secrets.js"></script>
     <script src="script.js"></script>
   </body>
 </html>
