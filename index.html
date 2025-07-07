@@ -19,17 +19,17 @@
     <div class="page-wrapper">
       <!------- Header / Branding ------->
       <header class="site-header">
-        <h1 class="site-title">Smart Product Advisor</h1>
+        <img src="img/loreal-logo.png" alt="L'Oréal Logo" class="brand-logo" />
+        <h1 class="site-title">SMART PRODUCT ADVISOR</h1>
       </header>
 
       <!------- Chat Area ------->
       <main>
         <section class="chatbox">
-          <div id="chatWindow" class="chat-window">
+          <div id="chatLog" class="chat-window">
             <!-- messages will be appended here via JS -->
           </div>
-
-          <form id="chatForm" class="chat-form">
+          <div class="chat-form">
             <label for="userInput" class="visually-hidden">Message</label>
             <input
               id="userInput"
@@ -39,11 +39,11 @@
               autocomplete="off"
               required
             />
-            <button type="submit" id="sendBtn">
+            <button type="button" id="sendBtn" onclick="sendMessage()">
               <span class="material-icons">send</span>
               <span class="visually-hidden">Send</span>
             </button>
-          </form>
+          </div>
         </section>
       </main>
 
