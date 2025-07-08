@@ -6,43 +6,7 @@ const userInput = document.getElementById("userInput");
 const chatLog = document.getElementById("chatLog");
 
 // System prompt to guide the assistant's behavior
-const systemPrompt = `You are "Smart Routine & Product Advisor," a warm, expert, and concise L’Oréal Beauty Advisor. When recommending any L’Oréal product or routine, direct the user to the appropriate regional L’Oréal Paris homepage instead of a specific product page. Use the word **here** (lower-case) exactly once as the link anchor. Maintain L’Oréal’s warm, expert, luxury tone and end with a friendly invitation (e.g., 'Let me know if I can help further! 😊').`;
-
-// This function determines the correct L'Oréal homepage based on the user's browser language.
-function getBrandHomeUrl() {
-  // Get the user's browser language, default to "en-us".
-  const lang = (navigator.language || "en-us").toLowerCase();
-
-  // Return the U.K. URL for British or Irish English.
-  if (lang.startsWith("en-gb") || lang.startsWith("en-ie")) {
-    return "https://www.lorealparis.co.uk/";
-  }
-  // Return the Australian URL for Australian or New Zealand English.
-  if (lang.startsWith("en-au") || lang.startsWith("en-nz")) {
-    return "https://www.lorealparis.com.au/";
-  }
-  // Return the U.S.A. URL for American English or Canadian French/English.
-  if (
-    lang.startsWith("en-us") ||
-    lang.startsWith("fr-ca") ||
-    lang.startsWith("en-ca")
-  ) {
-    return "https://www.lorealparisusa.com/";
-  }
-  // Return the global site as a fallback for all other languages.
-  return "https://www.loreal-paris.com/";
-}
-
-// This helper function finds the word "here" in the assistant's reply and replaces it with a clickable, region-aware link.
-function linkToBrandHome(text) {
-  // Get the region-specific URL.
-  const url = getBrandHomeUrl();
-  // Use a regular expression to replace the first case-insensitive occurrence of "here".
-  return text.replace(
-    /here/i,
-    `<a href="${url}" target="_blank" rel="noopener noreferrer" class="underline text-[#C9B037] hover:text-black font-semibold">here</a>`
-  );
-}
+const systemPrompt = `You are "Smart Routine & Product Advisor," a warm, expert, and concise L’Oréal Beauty Advisor. Only answer questions about beauty, skincare, haircare, and L’Oréal (including Pureology) products. Always recommend a specific L’Oréal or L’Oréal sub-brand product by name whenever possible (e.g., “I recommend the L’Oréal Revitalift Serum for…” or “For color-treated hair, try Pureology Hydrate Shampoo.”). If asked about routines, offer to create a personalized routine. If asked about ingredients or product differences, give a helpful, brand-aligned explanation using L’Oréal terminology. Politely refuse to answer unrelated questions. Always end with a friendly, premium sign-off, such as “Would you like a custom recommendation? 😊”`;
 
 // Store the full conversation history
 let messages = [
@@ -54,22 +18,44 @@ let messages = [
   { role: "system", content: systemPrompt },
 ];
 
+// Utility: returns the L'Oréal Paris main homepage
+function linkToBrandHome() {
+  return '<a href="https://www.lorealparisusa.com/" target="_blank" rel="noopener" class="text-gold underline hover:text-black transition">here</a>';
+}
+
 // Render all messages in the chat log using Tailwind CSS classes
 function renderMessages() {
   chatLog.innerHTML = "";
-  // Skip the system prompt (index 1 is the actual prompt)
   messages.forEach((msg, idx) => {
     if (msg.role === "system" && idx === 0) {
-      // Welcome message
-      chatLog.innerHTML += `<div class="flex justify-center"><div class="bg-gold text-black rounded-xl px-6 py-4 mb-3 max-w-[90%] text-center font-mont font-medium text-base">${msg.content}</div></div>`;
+      chatLog.innerHTML += `<div class=\"flex justify-center\"><div class=\"bg-gold text-black rounded-xl px-6 py-4 mb-3 max-w-[90%] text-center font-mont font-medium text-base\">${msg.content}</div></div>`;
     } else if (msg.role === "user") {
-      chatLog.innerHTML += `<div class="flex justify-end"><div class="bg-black text-white rounded-xl px-6 py-4 mb-3 max-w-[75%] text-right font-mont font-medium"><span class="block text-xs text-gold font-bold mb-1">You:</span>${msg.content}</div></div>`;
+      chatLog.innerHTML += `<div class=\"flex justify-end\"><div class=\"bg-black text-white rounded-xl px-6 py-4 mb-3 max-w-[75%] text-right font-mont font-medium\"><span class=\"block text-xs text-gold font-bold mb-1\">You:</span>${msg.content}</div></div>`;
     } else if (msg.role === "assistant") {
-      // The assistant's reply already contains the correct, region-aware link, so we render it directly.
-      chatLog.innerHTML += `<div class="flex justify-start"><div class="bg-gray-100 text-black rounded-xl px-6 py-4 mb-3 max-w-[75%] text-left font-mont font-medium"><span class="block text-xs text-gold font-bold mb-1">Advisor:</span>${msg.content}</div></div>`;
+      // ENHANCEMENT: Append Beauty Genius handoff if not already present
+      let reply = msg.content;
+      // Improved bolding for product suggestions
+      // Bold phrases like 'I recommend ...', 'Try ...', 'For ..., try ...', 'We recommend ...'
+      reply = reply.replace(/((I|We) recommend[^.?!]*[.?!])|((For [^,]+, )?try [^.?!]*[.?!])/gi, function(match) {
+        return `<strong>${match.trim()}</strong>`;
+      });
+      // Emphasize 'Beauty Genius' tool mentions
+      reply = reply.replace(/(Beauty Genius)/gi, '<span class="font-bold text-gold underline">$1</span>');
+      const handoffMsg = `You can also explore personalized tools like <span class=\"font-bold text-gold underline\">Beauty Genius</span> on our main site for more support. Just click here to continue. 😊`;
+      // Only add if not already present
+      if (!/beauty genius/i.test(reply) && !/main site/i.test(reply)) {
+        reply += `\n\n${handoffMsg}`;
+      } else {
+        // Replace any 'here' with the correct link
+        reply = reply.replace(/here/gi, linkToBrandHome());
+      }
+      // Always ensure 'here' is a link
+      if (!reply.includes(linkToBrandHome())) {
+        reply = reply.replace(/here/gi, linkToBrandHome());
+      }
+      chatLog.innerHTML += `<div class=\"flex justify-start\"><div class=\"bg-gray-100 text-black rounded-xl px-6 py-4 mb-3 max-w-[75%] text-left font-mont font-medium\"><span class=\"block text-xs text-gold font-bold mb-1\">Advisor:</span>${reply}</div></div>`;
     }
   });
-  // Scroll to bottom
   chatLog.scrollTop = chatLog.scrollHeight;
 }
 
@@ -108,10 +94,8 @@ async function sendMessage() {
     ) {
       botReply = data.choices[0].message.content;
     }
-    // Take the raw reply and inject the correct, region-aware homepage link.
-    const advisorReply = linkToBrandHome(botReply);
-    // Add the processed assistant reply to history.
-    messages.push({ role: "assistant", content: advisorReply });
+    // Add assistant reply to history
+    messages.push({ role: "assistant", content: botReply });
     renderMessages();
   } catch (error) {
     messages.push({
