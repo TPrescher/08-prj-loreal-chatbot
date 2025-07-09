@@ -13,7 +13,7 @@ let messages = [
   {
     role: "system",
     content:
-      "👋 Welcome to the Smart Routine & Product Advisor by L’Oréal. Let’s turn your routine into a ritual.",
+      "Welcome to the Smart Routine & Product Advisor by L’Oréal. Let’s turn your routine into a ritual.",
   },
   { role: "system", content: systemPrompt },
 ];
