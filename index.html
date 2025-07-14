@@ -1,55 +1,21 @@
 <!DOCTYPE html>
 <html lang="en">
   <head>
-    <meta charset="U      .routine-number {
-        position: absolute;
-        left: 0;
-        top: 0.2rem;
-        width: 1.5rem;
-        height: 1.5rem;
-        background: #C9B037;
-        color: #000;
-        border-radius: 50%;
-        font-size: 0.75rem;
-        font-weight: bold;
-        display: flex;
-        align-items: center;
-        justify-content: center;
-      }
-      /* Custom scrollbar for product grid */
-      #productCards::-webkit-scrollbar {
-        width: 8px;
-      }
-      #productCards::-webkit-scrollbar-track {
-        background: #f1f1f1;
-        border-radius: 4px;
-      }
-      #productCards::-webkit-scrollbar-thumb {
-        background: #C9B037;
-        border-radius: 4px;
-      }
-      #productCards::-webkit-scrollbar-thumb:hover {
-        background: #B8A632;
-      }
-      /* Fade effect for scroll indication */
-      .scroll-container {
-        position: relative;
-      }
-      .scroll-container::after {
-        content: '';
-        position: absolute;
-        bottom: 0;
-        left: 0;
-        right: 0;
-        height: 20px;
-        background: linear-gradient(transparent, rgba(249, 250, 251, 0.8));
-        pointer-events: none;
-        opacity: 0;
-        transition: opacity 0.3s ease;
-      }
-      .scroll-container.scrollable::after {
-        opacity: 1;
-      }eta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <meta charset="U .routine-number { position: absolute; left: 0; top: 0.2rem;
+    width: 1.5rem; height: 1.5rem; background: #C9B037; color: #000;
+    border-radius: 50%; font-size: 0.75rem; font-weight: bold; display: flex;
+    align-items: center; justify-content: center; } /* Custom scrollbar for
+    product grid */ #productCards::-webkit-scrollbar { width: 8px; }
+    #productCards::-webkit-scrollbar-track { background: #f1f1f1; border-radius:
+    4px; } #productCards::-webkit-scrollbar-thumb { background: #C9B037;
+    border-radius: 4px; } #productCards::-webkit-scrollbar-thumb:hover {
+    background: #B8A632; } /* Fade effect for scroll indication */
+    .scroll-container { position: relative; } .scroll-container::after {
+    content: ''; position: absolute; bottom: 0; left: 0; right: 0; height: 20px;
+    background: linear-gradient(transparent, rgba(249, 250, 251, 0.8));
+    pointer-events: none; opacity: 0; transition: opacity 0.3s ease; }
+    .scroll-container.scrollable::after { opacity: 1; }eta name="viewport"
+    content="width=device-width, initial-scale=1.0" />
     <title>Smart Product Advisor</title>
     <!-- Montserrat font -->
     <link
@@ -176,7 +142,9 @@
         <h2 class="font-mont text-black text-lg font-bold mb-2">
           Select Products
         </h2>
-        <div class="bg-gray-50 rounded-xl border border-black/10 p-4 mb-4 scroll-container">
+        <div
+          class="bg-gray-50 rounded-xl border border-black/10 p-4 mb-4 scroll-container"
+        >
           <div
             id="productCards"
             class="grid grid-cols-3 gap-3 overflow-y-auto max-h-[300px] pr-2"

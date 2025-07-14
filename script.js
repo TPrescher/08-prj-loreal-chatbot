@@ -28,43 +28,67 @@ function renderMessages() {
   chatLog.innerHTML = "";
   messages.forEach((msg, idx) => {
     if (msg.role === "system" && idx === 0) {
-      chatLog.innerHTML += `<div class="flex justify-center"><div class="bg-gold text-black rounded-xl px-6 py-4 mb-3 max-w-[90%] text-center font-mont font-medium text-base">${msg.content}</div></div>`;
+      chatLog.innerHTML += `<div class="flex justify-center"><div class="bg-gradient-to-r from-gold to-yellow-400 text-black rounded-xl px-8 py-5 mb-4 max-w-[90%] text-center font-mont font-semibold text-lg shadow-lg border-2 border-gold/30">${msg.content}</div></div>`;
     } else if (msg.role === "user") {
-      chatLog.innerHTML += `<div class="flex justify-end"><div class="bg-black text-white rounded-xl px-6 py-4 mb-3 max-w-[75%] text-right font-mont font-medium"><span class="block text-xs text-gold font-bold mb-1">You:</span>${msg.content}</div></div>`;
+      chatLog.innerHTML += `<div class="flex justify-end"><div class="bg-gradient-to-br from-black to-gray-800 text-white rounded-xl px-6 py-4 mb-4 max-w-[75%] text-right font-mont font-medium shadow-lg"><span class="block text-xs text-gold font-bold mb-2 tracking-wide uppercase">You:</span>${msg.content}</div></div>`;
     } else if (msg.role === "assistant") {
       // Enhanced formatting for luxury brand feel
       let reply = msg.content;
 
+      // Add space before the first step in a routine for cleaner separation
+      reply = reply.replace(
+        /(<div class=\"mb-6 bg-gradient-to-r from-gold\/10 to-transparent rounded-lg p-4 border-l-4 border-gold\">)/,
+        '<div class="my-6"></div>$1'
+      );
+
+      // Format step-by-step beauty routines with luxury styling
+      reply = reply.replace(
+        /Step (\d+):\s*([^:]+)(?=\s|$)/g,
+        '<div class="mb-6 bg-gradient-to-r from-gold/10 to-transparent rounded-lg p-4 border-l-4 border-gold">' +
+          '<div class="flex items-center mb-3">' +
+          '<span class="inline-block w-8 h-8 bg-gold text-black rounded-full text-sm font-bold flex items-center justify-center mr-3">$1</span>' +
+          '<h3 class="font-bold text-black text-lg">$2</h3>' +
+          "</div>" +
+          "</div>"
+      );
+
+      // Format step descriptions that follow step titles
+      reply = reply.replace(
+        /(<\/div>\s*<\/div>)\s*([^<]+?)(?=\s*(?:Step \d+:|$))/g,
+        '$1<div class="ml-11 text-gray-700 text-sm leading-relaxed">$2</div></div>'
+      );
+
+      // Format L'Oréal product names with consistent styling (before other formatting)
+      reply = reply.replace(
+        /\b(L'Oréal Paris\s+[^.,:;!?\n]*[A-Za-z0-9])/gi,
+        '<span class="font-semibold text-black bg-gold/20 px-2 py-1 rounded-md">$1</span>'
+      );
+
+      // Format specific product line names with elegant styling
+      reply = reply.replace(
+        /\b(Revitalift|Infallible|True Match|Voluminous|Pureology|Age Perfect|Youth Code|Elvive|Dream|Magic|Color Riche|Superior Preference|Feria|Excellence|Preference|Colorista|Telescopic|Bambi Eye|Lash Paradise|Rouge Signature|Colour Riche|Glow Lock|Fresh Wear|Pro-Glow|Hydra Perfecte|Hydra Genius|Skin Paradise|Skin Perfection|Perfect Match|Skin Renew|Skin Expertise|Skin Genesis|Setting Spray|3-Second|24HR|Derm Intensives|Hyaluronic Acid|Anti-Wrinkle)\b/gi,
+        '<span class="font-semibold text-black border-b border-gold/50 pb-0.5">$1</span>'
+      );
+
+      // Format recommendation phrases with consistent boundaries
+      reply = reply.replace(
+        /\b(I recommend|We recommend|Try|Consider using|For [^,]+, try)\s+([^.!?]*[.!?])/gi,
+        '<strong class="text-black bg-gold/10 px-2 py-1 rounded-md">$1 $2</strong>'
+      );
+
+      // Format bold markdown with gold accent (clean up any remaining **)
+      reply = reply.replace(
+        /\*\*([^*]+)\*\*/g,
+        '<span class="font-bold text-black border-b border-gold/70 pb-0.5">$1</span>'
+      );
+
       // Format numbered lists with better styling
       reply = reply.replace(
-        /(\d+)\.\s\*\*(.*?)\*\*/g,
-        '<div class="mb-4"><span class="inline-block w-6 h-6 bg-gold text-black rounded-full text-xs font-bold flex items-center justify-center mr-3">$1</span><span class="font-bold text-black">$2</span></div>'
-      );
-
-      // Format regular numbered lists
-      reply = reply.replace(
-        /(\d+)\.\s/g,
-        '<div class="mb-3"><span class="inline-block w-5 h-5 bg-gold text-black rounded-full text-xs font-bold flex items-center justify-center mr-2 mt-1">$1</span>'
-      );
-
-      // Format bold product recommendations with gold accent
-      reply = reply.replace(
-        /\*\*(.*?)\*\*/g,
-        '<span class="font-bold text-black border-b border-gold">$1</span>'
-      );
-
-      // Emphasize product names with L'Oréal branding
-      reply = reply.replace(
-        /(L'Oréal [^.,:;!?]*)/gi,
-        '<span class="font-semibold text-black">$1</span>'
-      );
-
-      // Bold phrases like 'I recommend ...', 'Try ...', 'For ..., try ...', 'We recommend ...'
-      reply = reply.replace(
-        /((I|We) recommend[^.?!]*[.?!])|((For [^,]+, )?try [^.?!]*[.?!])/gi,
-        function (match) {
-          return `<strong class="text-black">${match.trim()}</strong>`;
-        }
+        /^(\d+)\.\s+(.+)$/gm,
+        '<div class="mb-3 flex items-start">' +
+          '<span class="inline-block w-6 h-6 bg-gold text-black rounded-full text-xs font-bold flex items-center justify-center mr-3 mt-0.5 flex-shrink-0">$1</span>' +
+          '<div class="text-gray-800">$2</div>' +
+          "</div>"
       );
 
       // Create Beauty Genius link with proper styling
@@ -85,7 +109,7 @@ function renderMessages() {
         );
       }
 
-      chatLog.innerHTML += `<div class="flex justify-start"><div class="bg-white border border-gold border-opacity-20 rounded-xl px-6 py-4 mb-3 max-w-[85%] text-left font-mont shadow-sm"><span class="block text-xs text-gold font-bold mb-2">Smart Advisor:</span><div class="text-gray-800 leading-relaxed">${reply}</div></div></div>`;
+      chatLog.innerHTML += `<div class="flex justify-start"><div class="bg-gradient-to-br from-white to-gold/5 border-2 border-gold/20 rounded-xl px-6 py-5 mb-4 max-w-[85%] text-left font-mont shadow-lg"><span class="block text-xs text-gold font-bold mb-3 tracking-wide uppercase">Smart Advisor:</span><div class="text-gray-800 leading-relaxed text-base">${reply}</div></div></div>`;
     }
   });
   chatLog.scrollTop = chatLog.scrollHeight;
@@ -217,6 +241,24 @@ function generateRoutine() {
 
   // Send the prompt to the chatbot
   sendMessage(prompt);
+
+  // Deselect all products after generating a routine
+  selectedProducts = [];
+  updateSelectedList();
+  // Remove highlight from all product cards
+  const grid = document.getElementById("productCards");
+  if (grid) {
+    Array.from(grid.children).forEach((card) => {
+      card.classList.remove(
+        "border-2",
+        "border-gold",
+        "bg-gold",
+        "bg-opacity-10",
+        "shadow-lg"
+      );
+      card.classList.add("border-gray-200");
+    });
+  }
 }
 
 // Fetch product data from the backend and render the product cards
