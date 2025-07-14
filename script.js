@@ -5,12 +5,6 @@ const workerUrl = "https://loreal-worker.preschet.workers.dev";
 const userInput = document.getElementById("userInput");
 const chatLog = document.getElementById("chatLog");
 
-/* Product cards container */
-const productCardsContainer = document.getElementById("productCards");
-
-/* Selected products list */
-const selectedProductsList = document.getElementById("selectedProductsList");
-
 // System prompt to guide the assistant's behavior
 const systemPrompt = `You are "Smart Routine & Product Advisor," a warm, expert, and concise L’Oréal Beauty Advisor. Only answer questions about beauty, skincare, haircare, and L’Oréal (including Pureology) products. Always recommend a specific L’Oréal or L’Oréal sub-brand product by name whenever possible (e.g., “I recommend the L’Oréal Revitalift Serum for…” or “For color-treated hair, try Pureology Hydrate Shampoo.”). If asked about routines, offer to create a personalized routine. If asked about ingredients or product differences, give a helpful, brand-aligned explanation using L’Oréal terminology. Politely refuse to answer unrelated questions. Always end with a friendly, premium sign-off, such as “Would you like a custom recommendation? 😊”`;
 
@@ -34,38 +28,64 @@ function renderMessages() {
   chatLog.innerHTML = "";
   messages.forEach((msg, idx) => {
     if (msg.role === "system" && idx === 0) {
-      chatLog.innerHTML += `<div class=\"flex justify-center\"><div class=\"bg-gold text-black rounded-xl px-6 py-4 mb-3 max-w-[90%] text-center font-mont font-medium text-base\">${msg.content}</div></div>`;
+      chatLog.innerHTML += `<div class="flex justify-center"><div class="bg-gold text-black rounded-xl px-6 py-4 mb-3 max-w-[90%] text-center font-mont font-medium text-base">${msg.content}</div></div>`;
     } else if (msg.role === "user") {
-      chatLog.innerHTML += `<div class=\"flex justify-end\"><div class=\"bg-black text-white rounded-xl px-6 py-4 mb-3 max-w-[75%] text-right font-mont font-medium\"><span class=\"block text-xs text-gold font-bold mb-1\">You:</span>${msg.content}</div></div>`;
+      chatLog.innerHTML += `<div class="flex justify-end"><div class="bg-black text-white rounded-xl px-6 py-4 mb-3 max-w-[75%] text-right font-mont font-medium"><span class="block text-xs text-gold font-bold mb-1">You:</span>${msg.content}</div></div>`;
     } else if (msg.role === "assistant") {
-      // ENHANCEMENT: Append Beauty Genius handoff if not already present
+      // Enhanced formatting for luxury brand feel
       let reply = msg.content;
-      // Improved bolding for product suggestions
+
+      // Format numbered lists with better styling
+      reply = reply.replace(
+        /(\d+)\.\s\*\*(.*?)\*\*/g,
+        '<div class="mb-4"><span class="inline-block w-6 h-6 bg-gold text-black rounded-full text-xs font-bold flex items-center justify-center mr-3">$1</span><span class="font-bold text-black">$2</span></div>'
+      );
+
+      // Format regular numbered lists
+      reply = reply.replace(
+        /(\d+)\.\s/g,
+        '<div class="mb-3"><span class="inline-block w-5 h-5 bg-gold text-black rounded-full text-xs font-bold flex items-center justify-center mr-2 mt-1">$1</span>'
+      );
+
+      // Format bold product recommendations with gold accent
+      reply = reply.replace(
+        /\*\*(.*?)\*\*/g,
+        '<span class="font-bold text-black border-b border-gold">$1</span>'
+      );
+
+      // Emphasize product names with L'Oréal branding
+      reply = reply.replace(
+        /(L'Oréal [^.,:;!?]*)/gi,
+        '<span class="font-semibold text-black">$1</span>'
+      );
+
       // Bold phrases like 'I recommend ...', 'Try ...', 'For ..., try ...', 'We recommend ...'
       reply = reply.replace(
         /((I|We) recommend[^.?!]*[.?!])|((For [^,]+, )?try [^.?!]*[.?!])/gi,
         function (match) {
-          return `<strong>${match.trim()}</strong>`;
+          return `<strong class="text-black">${match.trim()}</strong>`;
         }
       );
-      // Emphasize 'Beauty Genius' tool mentions
-      reply = reply.replace(
-        /(Beauty Genius)/gi,
-        '<span class="font-bold text-gold underline">$1</span>'
-      );
-      const handoffMsg = `You can also explore personalized tools like <span class=\"font-bold text-gold underline\">Beauty Genius</span> on our main site for more support. Just click here to continue. 😊`;
+
+      // Create Beauty Genius link with proper styling
+      const beautyGeniusLink = `<a href="https://www.lorealparisusa.com/" target="_blank" rel="noopener" class="font-bold text-gold underline hover:text-black transition-colors duration-200">Beauty Genius</a>`;
+
+      const handoffMsg = `<div class="mt-4 pt-4 border-t border-gold border-opacity-30"><p class="text-sm text-gray-600">You can also explore personalized tools like ${beautyGeniusLink} on our main site for more support. 😊</p></div>`;
+
       // Only add if not already present
-      if (!/beauty genius/i.test(reply) && !/main site/i.test(reply)) {
-        reply += `\n\n${handoffMsg}`;
+      if (!/beauty genius/i.test(reply)) {
+        reply += handoffMsg;
       } else {
-        // Replace any 'here' with the correct link
-        reply = reply.replace(/here/gi, linkToBrandHome());
+        // Replace existing Beauty Genius mentions with proper link
+        reply = reply.replace(/(Beauty Genius)/gi, beautyGeniusLink);
+        // Remove any standalone "here" links
+        reply = reply.replace(
+          /Just click <a[^>]*>here<\/a> to continue\./gi,
+          ""
+        );
       }
-      // Always ensure 'here' is a link
-      if (!reply.includes(linkToBrandHome())) {
-        reply = reply.replace(/here/gi, linkToBrandHome());
-      }
-      chatLog.innerHTML += `<div class=\"flex justify-start\"><div class=\"bg-gray-100 text-black rounded-xl px-6 py-4 mb-3 max-w-[75%] text-left font-mont font-medium\"><span class=\"block text-xs text-gold font-bold mb-1\">Advisor:</span>${reply}</div></div>`;
+
+      chatLog.innerHTML += `<div class="flex justify-start"><div class="bg-white border border-gold border-opacity-20 rounded-xl px-6 py-4 mb-3 max-w-[85%] text-left font-mont shadow-sm"><span class="block text-xs text-gold font-bold mb-2">Smart Advisor:</span><div class="text-gray-800 leading-relaxed">${reply}</div></div></div>`;
     }
   });
   chatLog.scrollTop = chatLog.scrollHeight;
@@ -75,8 +95,9 @@ function renderMessages() {
 renderMessages();
 
 // This function sends the user's message to the API and updates the chat log
-async function sendMessage() {
-  const message = userInput.value.trim();
+async function sendMessage(messageOverride) {
+  // Use the provided message or get it from the input field
+  const message = messageOverride || userInput.value.trim();
   if (!message) return;
 
   // Add user message to history
@@ -116,7 +137,11 @@ async function sendMessage() {
     });
     renderMessages();
   }
-  userInput.value = "";
+
+  // Clear the input field if no message override was used
+  if (!messageOverride) {
+    userInput.value = "";
+  }
 }
 
 // Global array to store selected products
@@ -124,70 +149,131 @@ let selectedProducts = [];
 
 // Toggle selection for a product card
 function toggleProductSelection(productId, productName, element) {
-  // Check if product is already selected
+  // Check if the product is already in the selected list
   const index = selectedProducts.findIndex((p) => p.id === productId);
+
   if (index === -1) {
-    // Add product to selection
+    // If not selected, add it to the list
     selectedProducts.push({ id: productId, name: productName });
-    // Highlight card
-    element.classList.add("border-4", "border-black");
+    // Add a visual highlight to the card - updated for grid layout
+    element.classList.add(
+      "border-2",
+      "border-gold",
+      "bg-gold",
+      "bg-opacity-10",
+      "shadow-lg"
+    );
+    element.classList.remove("border-gray-200");
   } else {
-    // Remove product from selection
+    // If already selected, remove it from the list
     selectedProducts.splice(index, 1);
-    // Remove highlight
-    element.classList.remove("border-4", "border-black");
+    // Remove the visual highlight
+    element.classList.remove(
+      "border-2",
+      "border-gold",
+      "bg-gold",
+      "bg-opacity-10",
+      "shadow-lg"
+    );
+    element.classList.add("border-gray-200");
   }
+  // Update the list of selected products displayed to the user
   updateSelectedList();
 }
 
-// Sample product cards rendering (add this function and call it on page load)
-function renderProductCards() {
-  const products = [
-    { id: "p1", name: "Hydrate Shampoo" },
-    { id: "p2", name: "Revitalift Serum" },
-    { id: "p3", name: "Infallible Concealer" },
-    { id: "p4", name: "Pureology Hydrate Conditioner" },
-  ];
-  const container = document.getElementById("productCards");
-  if (!container) return;
-  container.innerHTML = products
-    .map(
-      (product) => `
-    <div
-      class="cursor-pointer bg-white rounded-xl shadow-md p-4 mb-3 transition border border-gray-200 hover:border-gold"
-      onclick="toggleProductSelection('${product.id}', '${product.name}', this)"
-      aria-label="Select ${product.name}"
-    >
-      <span class="font-mont text-black text-base">${product.name}</span>
-    </div>
-  `
-    )
-    .join("");
-}
-
-// Update the visual list of selected products
+// Function to update the displayed list of selected products
 function updateSelectedList() {
   const listContainer = document.getElementById("selectedProductsList");
-  if (!listContainer) return;
+  if (!listContainer) return; // Exit if the container doesn't exist
+
+  // If no products are selected, show a placeholder message
   if (selectedProducts.length === 0) {
     listContainer.innerHTML =
       "<span class='text-gray-400'>No products selected.</span>";
     return;
   }
-  listContainer.innerHTML = `<ul class='mb-2'>${selectedProducts
+
+  // Create an unordered list of the selected product names
+  listContainer.innerHTML = `<ul class='list-disc ml-6 mt-2 text-sm text-gray-700'>${selectedProducts
     .map(
       (p) => `<li class='font-mont text-black text-base mb-1'>${p.name}</li>`
     )
     .join("")}</ul>`;
 }
 
-// Call renderProductCards on page load
+// Function to generate a beauty routine based on selected products
+function generateRoutine() {
+  // Check if any products have been selected
+  if (selectedProducts.length === 0) {
+    // Alert the user if no products are selected
+    alert("Please select at least one product to generate a routine.");
+    return;
+  }
+
+  // Create a list of the names of the selected products
+  const productNames = selectedProducts.map((p) => p.name).join(", ");
+  // Formulate the prompt to send to the AI
+  const prompt = `Please create a personalized beauty routine for me using the following products: ${productNames}. I'm looking for a simple, step-by-step guide on how to use them together.`;
+
+  // Send the prompt to the chatbot
+  sendMessage(prompt);
+}
+
+// Fetch product data from the backend and render the product cards
+async function loadProducts() {
+  // Get the container for the product grid
+  const grid = document.getElementById("productCards");
+  if (!grid) return; // Exit if the grid doesn't exist
+
+  try {
+    // Fetch the list of products from the Cloudflare Worker
+    const res = await fetch(`${workerUrl}/products`);
+    const products = await res.json();
+
+    // Create and display a card for each product
+    products.forEach((prod) => {
+      const card = document.createElement("div");
+      // Set attributes to store product info
+      card.setAttribute("data-id", prod.id);
+      card.setAttribute("data-name", prod.name);
+      // Add styling classes for the card - improved for grid layout
+      card.className =
+        "cursor-pointer p-3 border border-gray-200 rounded-lg hover:shadow-lg hover:border-gold transition-all duration-200 bg-white";
+      // Set the inner HTML for the card content - improved image handling
+      card.innerHTML = `
+        <div class="aspect-square mb-2 overflow-hidden rounded-md bg-gray-100">
+          <img src="${prod.img}" alt="${prod.name}" class="w-full h-full object-cover hover:scale-105 transition-transform duration-200" onerror="this.style.display='none'; this.nextElementSibling.style.display='flex';" />
+          <div class="w-full h-full flex items-center justify-center text-gray-400 text-xs text-center hidden">
+            Image not available
+          </div>
+        </div>
+        <h3 class="text-xs font-semibold text-gray-800 leading-tight line-clamp-2">${prod.name}</h3>
+      `;
+      // Add a click event to select/deselect the product
+      card.onclick = () => toggleProductSelection(prod.id, prod.name, card);
+      // Add the card to the grid
+      grid.appendChild(card);
+    });
+  } catch (error) {
+    // Show an error message if products can't be loaded
+    grid.innerHTML =
+      "<p class='text-red-500 col-span-full text-center py-4'>Unable to load products at this time. Please try again later.</p>";
+  }
+}
+
+// When the page is fully loaded, set up the app
 window.addEventListener("DOMContentLoaded", () => {
-  renderProductCards();
-  renderMessages();
+  loadProducts(); // Load the product cards
+  renderMessages(); // Display initial chat messages
+
+  // Set up the "Generate Routine" button
+  const generateBtn = document.getElementById("generateRoutineBtn");
+  if (generateBtn) {
+    generateBtn.addEventListener("click", generateRoutine);
+  }
 });
 
-// Allow pressing Enter to send the message
+// Allow pressing Enter to send a message from the input field
 userInput.addEventListener("keydown", function (event) {
   if (event.key === "Enter") {
     sendMessage();

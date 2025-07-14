@@ -34,6 +34,47 @@
       .uppercase {
         text-transform: uppercase;
       }
+      .line-clamp-2 {
+        display: -webkit-box;
+        -webkit-line-clamp: 2;
+        line-clamp: 2;
+        -webkit-box-orient: vertical;
+        overflow: hidden;
+      }
+      .aspect-square {
+        aspect-ratio: 1 / 1;
+      }
+      /* Enhanced chat message styling */
+      .chat-message {
+        line-height: 1.6;
+      }
+      .chat-message p {
+        margin-bottom: 0.75rem;
+      }
+      .chat-message strong {
+        font-weight: 600;
+        color: #000;
+      }
+      .routine-step {
+        margin-bottom: 1rem;
+        padding-left: 2rem;
+        position: relative;
+      }
+      .routine-number {
+        position: absolute;
+        left: 0;
+        top: 0.2rem;
+        width: 1.5rem;
+        height: 1.5rem;
+        background: #c9b037;
+        color: #000;
+        border-radius: 50%;
+        font-size: 0.75rem;
+        font-weight: bold;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+      }
     </style>
   </head>
 
@@ -88,9 +129,13 @@
         <h2 class="font-mont text-black text-lg font-bold mb-2">
           Select Products
         </h2>
-        <div id="productCards" class="flex flex-col gap-2 mb-4"></div>
+        <div
+          id="productCards"
+          class="grid grid-cols-3 md:grid-cols-4 gap-3 mb-4"
+        ></div>
         <div id="selectedProductsList" class="mb-4"></div>
         <button
+          id="generateRoutineBtn"
           class="bg-black text-white rounded-lg px-6 py-3 font-mont font-semibold uppercase transition hover:bg-gold hover:text-black"
           type="button"
         >
