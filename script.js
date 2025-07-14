@@ -254,11 +254,44 @@ async function loadProducts() {
       // Add the card to the grid
       grid.appendChild(card);
     });
+
+    // Add scroll detection for fade effect
+    setupScrollDetection();
   } catch (error) {
     // Show an error message if products can't be loaded
     grid.innerHTML =
       "<p class='text-red-500 col-span-full text-center py-4'>Unable to load products at this time. Please try again later.</p>";
   }
+}
+
+// Function to detect if the product grid is scrollable and add visual cues
+function setupScrollDetection() {
+  const grid = document.getElementById("productCards");
+  const container = grid.parentElement;
+
+  if (!grid || !container) return;
+
+  // Check if content is scrollable
+  function checkScrollable() {
+    const isScrollable = grid.scrollHeight > grid.clientHeight;
+    container.classList.toggle("scrollable", isScrollable);
+  }
+
+  // Initial check
+  checkScrollable();
+
+  // Check on window resize
+  window.addEventListener("resize", checkScrollable);
+
+  // Add scroll event listener for smooth scrolling behavior
+  grid.addEventListener("scroll", () => {
+    const isNearBottom =
+      grid.scrollTop + grid.clientHeight >= grid.scrollHeight - 10;
+    container.classList.toggle(
+      "scrollable",
+      !isNearBottom && grid.scrollHeight > grid.clientHeight
+    );
+  });
 }
 
 // When the page is fully loaded, set up the app
