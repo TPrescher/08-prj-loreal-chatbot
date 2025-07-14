@@ -5,6 +5,12 @@ const workerUrl = "https://loreal-worker.preschet.workers.dev";
 const userInput = document.getElementById("userInput");
 const chatLog = document.getElementById("chatLog");
 
+/* Product cards container */
+const productCardsContainer = document.getElementById("productCards");
+
+/* Selected products list */
+const selectedProductsList = document.getElementById("selectedProductsList");
+
 // System prompt to guide the assistant's behavior
 const systemPrompt = `You are "Smart Routine & Product Advisor," a warm, expert, and concise L’Oréal Beauty Advisor. Only answer questions about beauty, skincare, haircare, and L’Oréal (including Pureology) products. Always recommend a specific L’Oréal or L’Oréal sub-brand product by name whenever possible (e.g., “I recommend the L’Oréal Revitalift Serum for…” or “For color-treated hair, try Pureology Hydrate Shampoo.”). If asked about routines, offer to create a personalized routine. If asked about ingredients or product differences, give a helpful, brand-aligned explanation using L’Oréal terminology. Politely refuse to answer unrelated questions. Always end with a friendly, premium sign-off, such as “Would you like a custom recommendation? 😊”`;
 
@@ -36,11 +42,17 @@ function renderMessages() {
       let reply = msg.content;
       // Improved bolding for product suggestions
       // Bold phrases like 'I recommend ...', 'Try ...', 'For ..., try ...', 'We recommend ...'
-      reply = reply.replace(/((I|We) recommend[^.?!]*[.?!])|((For [^,]+, )?try [^.?!]*[.?!])/gi, function(match) {
-        return `<strong>${match.trim()}</strong>`;
-      });
+      reply = reply.replace(
+        /((I|We) recommend[^.?!]*[.?!])|((For [^,]+, )?try [^.?!]*[.?!])/gi,
+        function (match) {
+          return `<strong>${match.trim()}</strong>`;
+        }
+      );
       // Emphasize 'Beauty Genius' tool mentions
-      reply = reply.replace(/(Beauty Genius)/gi, '<span class="font-bold text-gold underline">$1</span>');
+      reply = reply.replace(
+        /(Beauty Genius)/gi,
+        '<span class="font-bold text-gold underline">$1</span>'
+      );
       const handoffMsg = `You can also explore personalized tools like <span class=\"font-bold text-gold underline\">Beauty Genius</span> on our main site for more support. Just click here to continue. 😊`;
       // Only add if not already present
       if (!/beauty genius/i.test(reply) && !/main site/i.test(reply)) {
@@ -106,6 +118,74 @@ async function sendMessage() {
   }
   userInput.value = "";
 }
+
+// Global array to store selected products
+let selectedProducts = [];
+
+// Toggle selection for a product card
+function toggleProductSelection(productId, productName, element) {
+  // Check if product is already selected
+  const index = selectedProducts.findIndex((p) => p.id === productId);
+  if (index === -1) {
+    // Add product to selection
+    selectedProducts.push({ id: productId, name: productName });
+    // Highlight card
+    element.classList.add("border-4", "border-black");
+  } else {
+    // Remove product from selection
+    selectedProducts.splice(index, 1);
+    // Remove highlight
+    element.classList.remove("border-4", "border-black");
+  }
+  updateSelectedList();
+}
+
+// Sample product cards rendering (add this function and call it on page load)
+function renderProductCards() {
+  const products = [
+    { id: "p1", name: "Hydrate Shampoo" },
+    { id: "p2", name: "Revitalift Serum" },
+    { id: "p3", name: "Infallible Concealer" },
+    { id: "p4", name: "Pureology Hydrate Conditioner" },
+  ];
+  const container = document.getElementById("productCards");
+  if (!container) return;
+  container.innerHTML = products
+    .map(
+      (product) => `
+    <div
+      class="cursor-pointer bg-white rounded-xl shadow-md p-4 mb-3 transition border border-gray-200 hover:border-gold"
+      onclick="toggleProductSelection('${product.id}', '${product.name}', this)"
+      aria-label="Select ${product.name}"
+    >
+      <span class="font-mont text-black text-base">${product.name}</span>
+    </div>
+  `
+    )
+    .join("");
+}
+
+// Update the visual list of selected products
+function updateSelectedList() {
+  const listContainer = document.getElementById("selectedProductsList");
+  if (!listContainer) return;
+  if (selectedProducts.length === 0) {
+    listContainer.innerHTML =
+      "<span class='text-gray-400'>No products selected.</span>";
+    return;
+  }
+  listContainer.innerHTML = `<ul class='mb-2'>${selectedProducts
+    .map(
+      (p) => `<li class='font-mont text-black text-base mb-1'>${p.name}</li>`
+    )
+    .join("")}</ul>`;
+}
+
+// Call renderProductCards on page load
+window.addEventListener("DOMContentLoaded", () => {
+  renderProductCards();
+  renderMessages();
+});
 
 // Allow pressing Enter to send the message
 userInput.addEventListener("keydown", function (event) {
