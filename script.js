@@ -364,7 +364,7 @@ function generateProductDescription(productName) {
     "Infallible Pro-Matte Foundation":
       "A matte foundation that provides full coverage with a long-lasting, shine-free finish perfect for oily skin.",
     "Colorista Fade-Defy Shampoo-In Color":
-      "A temporary color shampoo that adds vibrant color to hair while cleansing and protecting against fading."
+      "A temporary color shampoo that adds vibrant color to hair while cleansing and protecting against fading.",
   };
 
   return (
