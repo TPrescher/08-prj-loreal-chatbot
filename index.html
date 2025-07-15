@@ -1,21 +1,8 @@
 <!DOCTYPE html>
 <html lang="en">
   <head>
-    <meta charset="U .routine-number { position: absolute; left: 0; top: 0.2rem;
-    width: 1.5rem; height: 1.5rem; background: #C9B037; color: #000;
-    border-radius: 50%; font-size: 0.75rem; font-weight: bold; display: flex;
-    align-items: center; justify-content: center; } /* Custom scrollbar for
-    product grid */ #productCards::-webkit-scrollbar { width: 8px; }
-    #productCards::-webkit-scrollbar-track { background: #f1f1f1; border-radius:
-    4px; } #productCards::-webkit-scrollbar-thumb { background: #C9B037;
-    border-radius: 4px; } #productCards::-webkit-scrollbar-thumb:hover {
-    background: #B8A632; } /* Fade effect for scroll indication */
-    .scroll-container { position: relative; } .scroll-container::after {
-    content: ''; position: absolute; bottom: 0; left: 0; right: 0; height: 20px;
-    background: linear-gradient(transparent, rgba(249, 250, 251, 0.8));
-    pointer-events: none; opacity: 0; transition: opacity 0.3s ease; }
-    .scroll-container.scrollable::after { opacity: 1; }eta name="viewport"
-    content="width=device-width, initial-scale=1.0" />
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
     <title>Smart Product Advisor</title>
     <!-- Montserrat font -->
     <link
@@ -88,26 +75,116 @@
         align-items: center;
         justify-content: center;
       }
+
+      /* Custom scrollbar for product grid */
+      #productCards::-webkit-scrollbar {
+        width: 8px;
+      }
+      #productCards::-webkit-scrollbar-track {
+        background: #f1f1f1;
+        border-radius: 4px;
+      }
+      #productCards::-webkit-scrollbar-thumb {
+        background: #c9b037;
+        border-radius: 4px;
+      }
+      #productCards::-webkit-scrollbar-thumb:hover {
+        background: #b8a632;
+      }
+
+      /* Custom scrollbar for drawer content */
+      .drawer-scroll::-webkit-scrollbar {
+        width: 6px;
+      }
+      .drawer-scroll::-webkit-scrollbar-track {
+        background: #f8f9fa;
+        border-radius: 3px;
+      }
+      .drawer-scroll::-webkit-scrollbar-thumb {
+        background: #c9b037;
+        border-radius: 3px;
+      }
+      .drawer-scroll::-webkit-scrollbar-thumb:hover {
+        background: #b8a632;
+      }
+
+      /* Firefox scrollbar styling */
+      #productCards,
+      .drawer-scroll {
+        scrollbar-width: thin;
+        scrollbar-color: #c9b037 #f1f1f1;
+      }
+
+      /* Fade effect for scroll indication */
+      .scroll-container {
+        position: relative;
+      }
+      .scroll-container::after {
+        content: "";
+        position: absolute;
+        bottom: 0;
+        left: 0;
+        right: 0;
+        height: 20px;
+        background: linear-gradient(transparent, rgba(249, 250, 251, 0.8));
+        pointer-events: none;
+        opacity: 0;
+        transition: opacity 0.3s ease;
+      }
+      .scroll-container.scrollable::after {
+        opacity: 1;
+      }
+
+      /* Drawer slide animation */
+      .drawer-slide {
+        transition: transform 0.3s ease-in-out;
+      }
+      .drawer-slide.closed {
+        transform: translateX(100%);
+      }
+      .drawer-slide.open {
+        transform: translateX(0);
+      }
+
+      /* Chat area transition */
+      .chat-container {
+        transition: margin-right 0.3s ease-in-out;
+      }
+      .chat-container.drawer-open {
+        margin-right: 360px;
+      }
+
+      /* Mobile responsive drawer */
+      @media (max-width: 768px) {
+        .drawer-slide {
+          width: 100% !important;
+        }
+        .chat-container.drawer-open {
+          margin-right: 0;
+        }
+      }
     </style>
   </head>
 
-  <body class="bg-white min-h-screen flex items-center justify-center">
+  <body class="bg-white min-h-screen flex items-center justify-center relative">
+    <!-- Main Chat Container -->
     <div
-      class="w-full max-w-2xl mx-auto bg-white rounded-2xl shadow-xl p-0 sm:p-8 flex flex-col min-h-[80vh]"
+      id="chatContainer"
+      class="chat-container w-full max-w-2xl mx-auto bg-white rounded-2xl shadow-xl p-4 sm:p-6 flex flex-col min-h-[80vh] relative"
     >
       <!-- Header -->
-      <header class="text-center mb-6">
+      <header class="text-center mb-4">
         <img
           src="img/loreal-logo.png"
           alt="L'Oréal Logo"
-          class="mx-auto mb-4 max-h-20"
+          class="mx-auto mb-3 max-h-16"
         />
         <h1
-          class="uppercase font-mont text-black text-2xl font-bold tracking-widest mb-2"
+          class="uppercase font-mont text-black text-xl font-bold tracking-widest mb-1"
         >
           Smart Product Advisor
         </h1>
-        <div class="text-gold font-semibold text-base mb-2">by L’Oréal</div>
+        <div class="text-gold font-semibold text-sm mb-4">by L’Oréal</div>
       </header>
       <!-- Chat Area -->
       <main class="flex-1 flex flex-col">
@@ -136,33 +213,96 @@
             Send
           </button>
         </div>
-      </main>
-      <!-- Product Selection Area -->
-      <section class="mb-6">
-        <h2 class="font-mont text-black text-lg font-bold mb-2">
-          Select Products
-        </h2>
-        <div
-          class="bg-gray-50 rounded-xl border border-black/10 p-4 mb-4 scroll-container"
-        >
-          <div
-            id="productCards"
-            class="grid grid-cols-3 gap-3 overflow-y-auto max-h-[300px] pr-2"
-          ></div>
+        <div class="flex items-center mt-2">
+          <input type="checkbox" id="webSearchCheckbox" class="h-4 w-4 text-gold border-gray-300 rounded focus:ring-gold">
+          <label for="webSearchCheckbox" class="ml-2 block text-sm text-gray-900">
+            Search the web
+          </label>
         </div>
-        <div id="selectedProductsList" class="mb-4"></div>
+      </main>
+
+      <!-- Add Products Button -->
+      <div class="mt-4 flex justify-center">
         <button
-          id="generateRoutineBtn"
-          class="w-full bg-black text-white rounded-lg px-6 py-3 font-mont font-semibold uppercase transition hover:bg-gold hover:text-black"
+          id="addProductsBtn"
+          onclick="toggleProductDrawer()"
+          class="bg-black text-white rounded-lg px-6 py-3 font-mont font-semibold uppercase transition hover:bg-gold hover:text-black flex items-center gap-2"
           type="button"
         >
-          Generate Routine
+          🛍️ Add Products
         </button>
-      </section>
+      </div>
+
+      <!-- Selected Products Display (when drawer is closed) -->
+      <div id="selectedProductsDisplay" class="mt-4">
+        <!-- Will be populated by JS -->
+      </div>
       <!-- Footer -->
       <footer class="text-center text-gray-500 text-xs mt-8">
         <p>&copy; 2025 L'Oréal. All rights reserved.</p>
       </footer>
+    </div>
+
+    <!-- Product Drawer Overlay -->
+    <div
+      id="drawerOverlay"
+      class="fixed inset-0 bg-black bg-opacity-50 z-40 hidden"
+      onclick="closeProductDrawer()"
+    ></div>
+
+    <!-- Product Drawer -->
+    <div
+      id="productDrawer"
+      class="drawer-slide closed fixed top-0 right-0 h-full w-full md:w-96 bg-white shadow-lg shadow-gold/20 z-50 flex flex-col"
+    >
+      <!-- Drawer Header -->
+      <div
+        class="flex items-center justify-between p-6 border-b border-gray-200"
+      >
+        <h2 class="font-mont text-black text-xl font-bold">Select Products</h2>
+        <button
+          onclick="closeProductDrawer()"
+          class="text-gold hover:text-black transition-colors text-2xl font-bold"
+        >
+          ×
+        </button>
+      </div>
+
+      <!-- Drawer Content -->
+      <div class="flex-1 flex flex-col overflow-hidden">
+        <!-- Search/Filter Controls -->
+        <div class="p-6 pb-4 border-b border-gray-100">
+          <input
+            id="productSearch"
+            type="text"
+            placeholder="Search products..."
+            class="w-full px-4 py-2 rounded-lg border border-gold focus:outline-none focus:ring-2 focus:ring-gold font-mont text-sm"
+            oninput="filterProducts()"
+          />
+        </div>
+
+        <!-- Scrollable Product Grid -->
+        <div class="flex-1 overflow-y-auto drawer-scroll">
+          <div class="p-6 pt-4">
+            <div
+              id="productCards"
+              class="grid grid-cols-1 md:grid-cols-2 gap-4"
+            ></div>
+          </div>
+        </div>
+
+        <!-- Selected Products List and Button -->
+        <div class="border-t border-gray-100 p-6 pt-4">
+          <div id="selectedProductsList" class="mb-4"></div>
+          <button
+            id="generateRoutineBtn"
+            class="w-full bg-black text-white rounded-lg px-6 py-3 font-mont font-semibold uppercase transition hover:bg-gold hover:text-black"
+            type="button"
+          >
+            Generate Routine
+          </button>
+        </div>
+      </div>
     </div>
     <script src="script.js"></script>
   </body>

@@ -124,6 +124,9 @@ async function sendMessage(messageOverride) {
   const message = messageOverride || userInput.value.trim();
   if (!message) return;
 
+  // Check if web search is enabled
+  const webSearchEnabled = document.getElementById("webSearchCheckbox").checked;
+
   // Add user message to history
   messages.push({ role: "user", content: message });
   renderMessages();
@@ -139,7 +142,7 @@ async function sendMessage(messageOverride) {
       headers: {
         "Content-Type": "application/json",
       },
-      body: JSON.stringify({ messages }),
+      body: JSON.stringify({ messages, webSearchEnabled }),
     });
     const data = await response.json();
     let botReply = "(No reply)";
@@ -203,6 +206,45 @@ function toggleProductSelection(productId, productName, element) {
   }
   // Update the list of selected products displayed to the user
   updateSelectedList();
+  // Save to localStorage
+  saveSelectedProducts();
+  // Update the main area display
+  updateSelectedProductsDisplay();
+}
+
+// Load selected products from localStorage on page load
+function loadSelectedProducts() {
+  const saved = localStorage.getItem("selectedProducts");
+  if (saved) {
+    selectedProducts = JSON.parse(saved);
+  }
+}
+
+// Save selected products to localStorage
+function saveSelectedProducts() {
+  localStorage.setItem("selectedProducts", JSON.stringify(selectedProducts));
+}
+
+// Clear all selected products
+function clearSelectedProducts() {
+  selectedProducts = [];
+  saveSelectedProducts();
+  updateSelectedList();
+  updateSelectedProductsDisplay();
+  // Remove highlight from all product cards
+  const grid = document.getElementById("productCards");
+  if (grid) {
+    Array.from(grid.children).forEach((card) => {
+      card.classList.remove(
+        "border-2",
+        "border-gold",
+        "bg-gold",
+        "bg-opacity-10",
+        "shadow-lg"
+      );
+      card.classList.add("border-gray-200");
+    });
+  }
 }
 
 // Function to update the displayed list of selected products
@@ -272,33 +314,11 @@ async function loadProducts() {
     const res = await fetch(`${workerUrl}/products`);
     const products = await res.json();
 
-    // Create and display a card for each product
-    products.forEach((prod) => {
-      const card = document.createElement("div");
-      // Set attributes to store product info
-      card.setAttribute("data-id", prod.id);
-      card.setAttribute("data-name", prod.name);
-      // Add styling classes for the card - improved for grid layout
-      card.className =
-        "cursor-pointer p-3 border border-gray-200 rounded-lg hover:shadow-lg hover:border-gold transition-all duration-200 bg-white";
-      // Set the inner HTML for the card content - improved image handling
-      card.innerHTML = `
-        <div class="aspect-square mb-2 overflow-hidden rounded-md bg-gray-100">
-          <img src="${prod.img}" alt="${prod.name}" class="w-full h-full object-cover hover:scale-105 transition-transform duration-200" onerror="this.style.display='none'; this.nextElementSibling.style.display='flex';" />
-          <div class="w-full h-full flex items-center justify-center text-gray-400 text-xs text-center hidden">
-            Image not available
-          </div>
-        </div>
-        <h3 class="text-xs font-semibold text-gray-800 leading-tight line-clamp-2">${prod.name}</h3>
-      `;
-      // Add a click event to select/deselect the product
-      card.onclick = () => toggleProductSelection(prod.id, prod.name, card);
-      // Add the card to the grid
-      grid.appendChild(card);
-    });
+    // Store all products for filtering
+    allProducts = products;
 
-    // Add scroll detection for fade effect
-    setupScrollDetection();
+    // Render all products initially
+    renderProducts(products);
   } catch (error) {
     // Show an error message if products can't be loaded
     grid.innerHTML =
@@ -306,40 +326,224 @@ async function loadProducts() {
   }
 }
 
-// Function to detect if the product grid is scrollable and add visual cues
-function setupScrollDetection() {
+// Generate product description based on product name
+function generateProductDescription(productName) {
+  const descriptions = {
+    "True Match Super-Blendable Foundation":
+      "A lightweight, oil-free foundation that matches your skin's tone and undertone for a natural, seamless finish.",
+    "RevitaLift Derm Intensives 1.5% Pure Hyaluronic Acid Serum":
+      "An intensive anti-aging serum that plumps and hydrates skin with pure hyaluronic acid for smoother, more youthful-looking skin.",
+    "True Match Lumi Glotion Natural Glow Essence":
+      "A lightweight glow enhancer that adds natural-looking radiance to your complexion for a healthy, luminous glow.",
+    "Voluminous Lash Paradise Washable Mascara":
+      "An intense volume mascara that delivers dramatic lashes with feathery-soft texture and rich, intense color.",
+    "Infallible 3-Second Setting Spray":
+      "A quick-setting spray that locks makeup in place for all-day wear with a weightless, comfortable feel.",
+    "RevitaLift Clinical 12% Pure Vitamin C Serum":
+      "A powerful vitamin C serum that brightens skin and reduces dark spots for a more even, radiant complexion.",
+    "Infallible Full Wear Concealer":
+      "A full-coverage concealer that provides up to 24-hour wear with a natural finish that won't cake or crease.",
+    "RevitaLift Triple Power Anti-Aging Moisturizer":
+      "A multi-action moisturizer that targets wrinkles, firms skin, and evens tone for younger-looking skin.",
+    "RevitaLift Derm Intensives 0.3% Pure Retinol Serum":
+      "An anti-aging retinol serum that reduces fine lines and wrinkles while improving skin texture and tone.",
+    "Age Perfect Rosy Tone Moisturizer":
+      "A nourishing moisturizer that adds a subtle rosy tint while hydrating and protecting mature skin.",
+    "RevitaLift Triple Power Eye Treatment":
+      "An intensive eye treatment that targets crow's feet, puffiness, and dark circles for brighter, younger-looking eyes.",
+    "EverPure Sulfate-Free Moisture Shampoo":
+      "A gentle, sulfate-free shampoo that cleanses while preserving color and providing deep moisture to hair.",
+    "Elvive Total Repair 5 Repairing Shampoo":
+      "A repairing shampoo that targets 5 signs of damaged hair for stronger, healthier, more manageable locks.",
+    "Elvive Dream Lengths Shampoo":
+      "A length-strengthening shampoo that helps hair grow longer and stronger while preventing breakage.",
+    "Infallible Infinite Black Liner":
+      "A precise eyeliner that delivers intense black color with long-lasting, smudge-proof wear.",
+    "Infallible Pro-Glow Foundation":
+      "A luminous foundation that provides buildable coverage with a natural, radiant finish that lasts all day.",
+    "Infallible Pro-Matte Foundation":
+      "A matte foundation that provides full coverage with a long-lasting, shine-free finish perfect for oily skin.",
+    "Colorista Fade-Defy Shampoo-In Color":
+      "A temporary color shampoo that adds vibrant color to hair while cleansing and protecting against fading."
+  };
+
+  return (
+    descriptions[productName] ||
+    "A premium L'Oréal Paris beauty product designed to enhance your natural beauty."
+  );
+}
+
+// Restore visual state for selected products after page load
+function restoreSelectedState() {
   const grid = document.getElementById("productCards");
-  const container = grid.parentElement;
+  if (!grid) return;
 
-  if (!grid || !container) return;
-
-  // Check if content is scrollable
-  function checkScrollable() {
-    const isScrollable = grid.scrollHeight > grid.clientHeight;
-    container.classList.toggle("scrollable", isScrollable);
-  }
-
-  // Initial check
-  checkScrollable();
-
-  // Check on window resize
-  window.addEventListener("resize", checkScrollable);
-
-  // Add scroll event listener for smooth scrolling behavior
-  grid.addEventListener("scroll", () => {
-    const isNearBottom =
-      grid.scrollTop + grid.clientHeight >= grid.scrollHeight - 10;
-    container.classList.toggle(
-      "scrollable",
-      !isNearBottom && grid.scrollHeight > grid.clientHeight
-    );
+  selectedProducts.forEach((selectedProduct) => {
+    const card = grid.querySelector(`[data-id="${selectedProduct.id}"]`);
+    if (card) {
+      card.classList.add(
+        "border-2",
+        "border-gold",
+        "bg-gold",
+        "bg-opacity-10",
+        "shadow-lg"
+      );
+      card.classList.remove("border-gray-200");
+    }
   });
 }
 
+// =======================================
+// PRODUCT SELECTION AND DRAWER FUNCTIONS
+// =======================================
+
+// Drawer functionality
+let isDrawerOpen = false;
+let allProducts = []; // Store all products for filtering
+
+// Toggle product drawer
+function toggleProductDrawer() {
+  if (isDrawerOpen) {
+    closeProductDrawer();
+  } else {
+    openProductDrawer();
+  }
+}
+
+// Open product drawer
+function openProductDrawer() {
+  const drawer = document.getElementById("productDrawer");
+  const overlay = document.getElementById("drawerOverlay");
+  const chatContainer = document.getElementById("chatContainer");
+
+  drawer.classList.remove("closed");
+  drawer.classList.add("open");
+  overlay.classList.remove("hidden");
+  chatContainer.classList.add("drawer-open");
+
+  isDrawerOpen = true;
+
+  // Focus on search input
+  const searchInput = document.getElementById("productSearch");
+  setTimeout(() => searchInput.focus(), 300);
+}
+
+// Close product drawer
+function closeProductDrawer() {
+  const drawer = document.getElementById("productDrawer");
+  const overlay = document.getElementById("drawerOverlay");
+  const chatContainer = document.getElementById("chatContainer");
+
+  drawer.classList.remove("open");
+  drawer.classList.add("closed");
+  overlay.classList.add("hidden");
+  chatContainer.classList.remove("drawer-open");
+
+  isDrawerOpen = false;
+
+  // Update the selected products display in main area
+  updateSelectedProductsDisplay();
+}
+
+// Filter products based on search input
+function filterProducts() {
+  const searchTerm = document
+    .getElementById("productSearch")
+    .value.toLowerCase();
+  const productCards = document.getElementById("productCards");
+
+  // Filter all products
+  const filteredProducts = allProducts.filter((product) =>
+    product.name.toLowerCase().includes(searchTerm)
+  );
+
+  // Re-render filtered products
+  renderProducts(filteredProducts);
+}
+
+// Render products in the grid
+function renderProducts(products) {
+  const grid = document.getElementById("productCards");
+  grid.innerHTML = "";
+
+  products.forEach((prod) => {
+    const card = document.createElement("div");
+    card.setAttribute("data-id", prod.id);
+    card.setAttribute("data-name", prod.name);
+    card.className =
+      "cursor-pointer p-3 border border-gray-200 rounded-lg hover:shadow-lg hover:border-gold transition-all duration-200 bg-white relative group";
+
+    const description = generateProductDescription(prod.name);
+
+    card.innerHTML = `
+      <div class="aspect-square mb-2 overflow-hidden rounded-md bg-gray-100 relative">
+        <img src="${prod.img}" alt="${prod.name}" class="w-full h-full object-cover hover:scale-105 transition-transform duration-200" onerror="this.style.display='none'; this.nextElementSibling.style.display='flex';" />
+        <div class="w-full h-full flex items-center justify-center text-gray-400 text-xs text-center hidden">
+          Image not available
+        </div>
+        <div class="absolute inset-0 bg-gradient-to-t from-black/98 via-black/80 to-transparent opacity-0 group-hover:opacity-100 transition-opacity duration-300 flex items-end justify-center p-3">
+          <p class="text-white text-sm text-center leading-relaxed font-mont font-bold shadow-2xl" style="text-shadow: 0 0 12px #C9B037, 0 0 24px #C9B037, 2px 2px 4px rgba(0,0,0,0.9), 0 0 8px rgba(0,0,0,0.8);">${description}</p>
+        </div>
+      </div>
+      <h3 class="text-sm font-semibold text-gray-800 leading-tight line-clamp-2">${prod.name}</h3>
+    `;
+
+    card.onclick = () => toggleProductSelection(prod.id, prod.name, card);
+    grid.appendChild(card);
+  });
+
+  // Restore selected state
+  restoreSelectedState();
+}
+
+// Update selected products display in main area (when drawer is closed)
+function updateSelectedProductsDisplay() {
+  const display = document.getElementById("selectedProductsDisplay");
+
+  if (selectedProducts.length === 0) {
+    display.innerHTML = "";
+    return;
+  }
+
+  display.innerHTML = `
+    <div class="bg-gray-50 rounded-lg p-4 border border-gray-200">
+      <div class="flex items-center justify-between mb-2">
+        <span class="text-sm font-semibold text-gray-700">Selected Products (${
+          selectedProducts.length
+        }):</span>
+        <button onclick="clearSelectedProducts()" class="text-xs text-red-500 hover:text-red-700 underline">Clear All</button>
+      </div>
+      <div class="flex flex-wrap gap-2">
+        ${selectedProducts
+          .map(
+            (p) => `
+          <span class="bg-gold/20 text-black text-xs px-2 py-1 rounded-full">${p.name}</span>
+        `
+          )
+          .join("")}
+      </div>
+      <button onclick="generateRoutine()" class="w-full bg-black text-white rounded-lg px-4 py-2 font-mont font-semibold uppercase transition hover:bg-gold hover:text-black mt-3 text-sm">
+        Generate Routine
+      </button>
+    </div>
+  `;
+}
+
+// =======================================
+// INITIALIZATION
+// =======================================
+
 // When the page is fully loaded, set up the app
 window.addEventListener("DOMContentLoaded", () => {
+  // Load selected products from localStorage first
+  loadSelectedProducts();
+
   loadProducts(); // Load the product cards
   renderMessages(); // Display initial chat messages
+
+  // Update the selected products list display
+  updateSelectedList();
+  updateSelectedProductsDisplay();
 
   // Set up the "Generate Routine" button
   const generateBtn = document.getElementById("generateRoutineBtn");
